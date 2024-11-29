@@ -63,8 +63,7 @@ namespace BlogAPI.Controllers
         public ActionResult Delete(string id)
         {
             var comment = dataBase.ListOfComments.FirstOrDefault(i => i.Id == id);
-
-
+            // ako komentar ne postoji
             if (comment == null)
             {
                 return NotFound();
