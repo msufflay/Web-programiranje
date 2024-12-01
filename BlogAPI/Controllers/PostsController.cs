@@ -13,6 +13,7 @@ namespace BlogAPI.Controllers
         {
             this.dataBase = dataBase;
         }
+
         [HttpGet(Name = "GetPost")]
         public ActionResult<List<Post>> GetPost()
         {
@@ -22,9 +23,9 @@ namespace BlogAPI.Controllers
         [HttpGet("{id}")]
         public ActionResult GetPostById(string id)
         {
-            var post = dataBase.ListOfComments.FirstOrDefault(i => i.Id == id);
+            var post = dataBase.ListOfPosts.FirstOrDefault(i => i.Id == id);
             if (post == null)
-                return NotFound();
+                return NotFound(new { message = $"Post s Id-jem {id} ne postoji." });
 
             return Ok(post);
         }
@@ -32,8 +33,8 @@ namespace BlogAPI.Controllers
         [HttpPost(Name = "CreatePost")]
         public ActionResult<Post> CreatePost(PostCreateRequests postcreaterequests)
         {
-            
-            if (dataBase.ListOfUsers.Any(user => user.Id == user.Id))
+            // mislim da ovdje nešto nije dobro :)
+            if (dataBase.ListOfUsers.Any(user => user.Id == postcreaterequests.UserId))
             {
                 Post post = new Post
                 {
@@ -45,7 +46,7 @@ namespace BlogAPI.Controllers
                 dataBase.ListOfPosts.Add(post);
                 return CreatedAtAction(nameof(GetPostById), new { id = post.Id },post);
             }
-            return NotFound();
+            return NotFound(new { message = $"Korisnik s Id-jem {postcreaterequests.UserId} ne postoji." });
 
         }
 
@@ -56,14 +57,20 @@ namespace BlogAPI.Controllers
 
             if (existingPost == null)
             {
-                return NotFound(new { message = $"Post s istim Id-jem {id} već postoji." });
+                return NotFound(new { message = $"Post s Id-jem {id} ne postoji." });
             }
 
-            existingPost.Title = postupdaterequests.Title;
-            existingPost.UserId = postupdaterequests.UserId;
+            if (dataBase.ListOfUsers.Any(user => user.Id == postupdaterequests.UserId))
+            {
+                existingPost.Title = postupdaterequests.Title;
+                existingPost.UserId = postupdaterequests.UserId;
+            }
+            else
+                return NotFound(new { message = $"Korisnik s Id-jem {postupdaterequests.UserId} ne postoji." });
 
             return NoContent();
         }
+
         [HttpDelete("{id}")]
         public ActionResult Delete(string id)
         {
@@ -75,7 +82,7 @@ namespace BlogAPI.Controllers
 
             if (post == null)
             {
-                return NotFound();
+                return NotFound(new { message = $"Post s Id-jem {id} ne postoji." });
             }
 
             dataBase.ListOfPosts.Remove(post);

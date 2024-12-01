@@ -26,16 +26,22 @@ namespace BlogAPI.Controllers
         {
             var comment = dataBase.ListOfComments.FirstOrDefault(i => i.Id == id);
             if (comment == null)
-                return NotFound();
+                return NotFound(new { message = $"Komentar s Id-jem {id} ne postoji." });
 
             return Ok(comment);
         }
 
         [HttpPost(Name = "CreateComment")]
-        public ActionResult<Comment> CreateComment(Comment comment)
+        public ActionResult<Comment> CreateComment(CommentCreateRequests commentcreaterequests)
         {
-            if(dataBase.ListOfPosts.Any(post=> post.Id == comment.PostId))
+            if(dataBase.ListOfPosts.Any(post=> post.Id == commentcreaterequests.PostId))
             {
+                Comment comment = new Comment
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Content = commentcreaterequests.Content,
+                    PostId = commentcreaterequests.PostId
+                };
                 dataBase.ListOfComments.Add(comment);
                 return CreatedAtAction(nameof(GetCommentById), new { id = comment.Id }, comment);
             }
@@ -44,17 +50,22 @@ namespace BlogAPI.Controllers
         }
 
         [HttpPut("{id}")]
-        public IActionResult Update(string id, Comment comment)
+        public IActionResult Update(string id, CommentUpdateRequests commentupdaterequests)
         {
             var existingComment = dataBase.ListOfComments.FirstOrDefault(i => i.Id == id);
 
             if (existingComment == null)
             {
-                return NotFound(new { message = $"Element s istim Id-jem {id} već postoji." });
+                return NotFound(new { message = $"Komentar s Id-jem {id} ne postoji." });
             }
 
-            existingComment.Content = comment.Content;
-            existingComment.PostId = comment.PostId;
+            if (dataBase.ListOfPosts.Any(post => post.Id == commentupdaterequests.PostId))
+            {
+                existingComment.Content = commentupdaterequests.Content;
+                existingComment.PostId = commentupdaterequests.PostId;
+            }
+            else
+                return NotFound(new { message = $"Post s Id-jem {commentupdaterequests.PostId} ne postoji." });
 
             return NoContent();
         }
@@ -66,7 +77,7 @@ namespace BlogAPI.Controllers
             // ako komentar ne postoji
             if (comment == null)
             {
-                return NotFound();
+                return NotFound(new { message = $"Komentar s Id-jem {id} ne postoji." });
             }
 
             dataBase.ListOfComments.Remove(comment);

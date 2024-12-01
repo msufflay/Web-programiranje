@@ -13,6 +13,7 @@ namespace BlogAPI.Controllers
         {
             this.dataBase = dataBase;
         }
+
         [HttpGet(Name = "GetUser")]
         public ActionResult<List<User>> GetUser()
         {
@@ -24,7 +25,7 @@ namespace BlogAPI.Controllers
         {
             var user = dataBase.ListOfUsers.FirstOrDefault(i => i.Id == id);
             if (user == null)
-                return NotFound();
+                return NotFound(new { message = $"User s Id-jem {id} ne postoji." });
 
             return Ok(user);
         }
@@ -50,7 +51,7 @@ namespace BlogAPI.Controllers
 
             if (existingUser == null)
             {
-                return NotFound(new { message = $"User s istim Id-jem {id} već postoji." });
+                return NotFound(new { message = $"User s Id-jem {id} ne postoji." });
             }
 
             existingUser.Name = userupdaterequests.Name;
@@ -70,7 +71,7 @@ namespace BlogAPI.Controllers
 
             if (user == null)
             {
-                return NotFound();
+                return NotFound(new { message = $"User s Id-jem {id} ne postoji." });
             }
 
             dataBase.ListOfUsers.Remove(user);
